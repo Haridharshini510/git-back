@@ -7,6 +7,7 @@
   "scripts": {
     "build": "npm run build --workspaces",
     "build:core": "npm run build -w packages/core",
-    "build:mcp": "npm run build -w packages/mcp"
+    "build:mcp": "npm run build -w packages/mcp",
+    "build:api": "npm run build -w packages/api"
   }
 }
