@@ -3,6 +3,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { rememberToolDefinition, handleRemember } from "./tools/remember.js";
+import { resumeToolDefinition, handleResume } from "./tools/resume.js";
 import { z } from "zod";
 
 const server = new McpServer({
@@ -23,6 +24,20 @@ server.tool(
   },
   async ({ note, tags }) => {
     const result = await handleRemember({ note, tags });
+    return { content: [{ type: "text", text: result }] };
+  }
+);
+
+server.tool(
+  resumeToolDefinition.name,
+  resumeToolDefinition.description,
+  {
+    detail: z.enum(["brief", "full"]).optional().describe(
+      "Level of detail: 'brief' (default) or 'full'"
+    ),
+  },
+  async ({ detail }) => {
+    const result = await handleResume({ detail });
     return { content: [{ type: "text", text: result }] };
   }
 );
