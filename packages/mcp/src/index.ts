@@ -1,2 +1,38 @@
 #!/usr/bin/env node
-console.log("GitBack MCP server starting...");
+
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { rememberToolDefinition, handleRemember } from "./tools/remember.js";
+import { z } from "zod";
+
+const server = new McpServer({
+  name: "gitback",
+  version: "0.1.0",
+});
+
+server.tool(
+  rememberToolDefinition.name,
+  rememberToolDefinition.description,
+  {
+    note: z.string().describe(
+      "Describe what you're working on, what's done, what's not, and what you plan to do next."
+    ),
+    tags: z.array(z.string()).optional().describe(
+      "Optional tags for categorization"
+    ),
+  },
+  async ({ note, tags }) => {
+    const result = await handleRemember({ note, tags });
+    return { content: [{ type: "text", text: result }] };
+  }
+);
+
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+}
+
+main().catch((err) => {
+  console.error("GitBack MCP server failed to start:", err);
+  process.exit(1);
+});
