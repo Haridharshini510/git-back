@@ -20,16 +20,31 @@ export function Dashboard({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <h1 className="text-2xl font-bold text-gray-900">GitBack</h1>
-          <p className="text-sm text-gray-500">
+      <header className="bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+        <div className="max-w-6xl mx-auto px-6 py-12">
+          <h1 className="text-4xl font-bold mb-2">GitBack</h1>
+          <p className="text-lg text-gray-300 mb-6">
             Your coding agent knows your code. GitBack remembers your journey.
           </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="bg-white/10 rounded-lg p-4">
+              <div className="font-semibold text-blue-300 mb-1">Remember</div>
+              <p className="text-gray-400">Save your intent, decisions, and progress as development checkpoints.</p>
+            </div>
+            <div className="bg-white/10 rounded-lg p-4">
+              <div className="font-semibold text-green-300 mb-1">Resume</div>
+              <p className="text-gray-400">Get an AI-powered briefing combining your saved context with current state.</p>
+            </div>
+            <div className="bg-white/10 rounded-lg p-4">
+              <div className="font-semibold text-purple-300 mb-1">Compare</div>
+              <p className="text-gray-400">See exactly what changed since your last checkpoint, with evidence.</p>
+            </div>
+          </div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-8">
+        <h2 className="text-lg font-semibold text-gray-700 mb-4">Your Projects</h2>
         {loading && (
           <div className="text-center py-12 text-gray-500">Loading projects...</div>
         )}

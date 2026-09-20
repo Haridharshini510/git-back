@@ -5,6 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { rememberToolDefinition, handleRemember } from "./tools/remember.js";
 import { resumeToolDefinition, handleResume } from "./tools/resume.js";
 import { compareToolDefinition, handleCompare } from "./tools/compare.js";
+import { statusToolDefinition, handleStatus } from "./tools/status.js";
 import { z } from "zod";
 
 const server = new McpServer({
@@ -49,6 +50,16 @@ server.tool(
   {},
   async () => {
     const result = await handleCompare();
+    return { content: [{ type: "text", text: result }] };
+  }
+);
+
+server.tool(
+  statusToolDefinition.name,
+  statusToolDefinition.description,
+  {},
+  async () => {
+    const result = await handleStatus();
     return { content: [{ type: "text", text: result }] };
   }
 );
