@@ -3,3 +3,6 @@ dist/
 .env
 *.js.map
 .DS_Store
+.claude/
+.superpowers/
+start-api.sh
