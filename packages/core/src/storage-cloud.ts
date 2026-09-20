@@ -8,7 +8,7 @@ import {
 import type { Checkpoint, CheckpointSummary, ProjectRecord, ContextSnapshot } from "./types.js";
 
 const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || "us-west-2",
+  region: process.env.GITBACK_AWS_REGION || process.env.AWS_REGION || "us-west-2",
 });
 const dynamo = DynamoDBDocumentClient.from(client);
 
