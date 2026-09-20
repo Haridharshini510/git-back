@@ -3,7 +3,10 @@ import {
   saveCheckpointLocal,
   resolveProject,
   isGitRepo,
+  saveCheckpointCloud,
+  saveProjectRecord,
 } from "@gitback/core";
+import type { ActivityStatus } from "@gitback/core";
 
 export const rememberToolDefinition = {
   name: "gitback_remember",
@@ -45,6 +48,23 @@ export async function handleRemember(args: {
     checkpoint.gitStatus.untracked.length;
 
   const todoCount = checkpoint.todos.length;
+
+  // Cloud sync (best-effort, don't block on failure)
+  const userId = process.env.GITBACK_USER_ID || "demo-user";
+  try {
+    await saveCheckpointCloud(userId, checkpoint);
+    await saveProjectRecord(userId, {
+      projectId: project.projectId,
+      repoFullName: project.repoFullName,
+      remoteUrl: project.remoteUrl,
+      activityStatus: "Active" as ActivityStatus,
+      summary: args.note.slice(0, 200),
+      lastCheckpointAt: checkpoint.timestamp,
+      lastCommitDate: checkpoint.recentCommits[0]?.date || null,
+    });
+  } catch (err) {
+    // Cloud sync failed — local save already succeeded, so continue
+  }
 
   return [
     `Checkpoint saved for **${project.repoFullName}**`,

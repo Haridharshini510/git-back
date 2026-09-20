@@ -1,11 +1,13 @@
 import {
   loadLatestCheckpointLocal,
+  loadLatestCheckpointCloud,
   resolveProject,
   getGitState,
   getRecentCommits,
   gatherEvidence,
   getGitDiffSummary,
   isGitRepo,
+  synthesizeResumeBriefing,
 } from "@gitback/core";
 import type { CommitInfo, Evidence } from "@gitback/core";
 
@@ -59,8 +61,19 @@ export async function handleResume(args: {
   }
 
   const project = resolveProject();
-  const checkpoint = loadLatestCheckpointLocal(project.projectId);
   const currentState = getGitState();
+
+  // Try cloud first, fall back to local
+  const userId = process.env.GITBACK_USER_ID || "demo-user";
+  let checkpoint = null;
+  try {
+    checkpoint = await loadLatestCheckpointCloud(userId, project.projectId);
+  } catch {
+    // Cloud unavailable
+  }
+  if (!checkpoint) {
+    checkpoint = loadLatestCheckpointLocal(project.projectId);
+  }
 
   if (!checkpoint) {
     const fileCount =
@@ -87,6 +100,21 @@ export async function handleResume(args: {
   const diffSummary = getGitDiffSummary(checkpoint.commitSha);
   const evidence = gatherEvidence(checkpoint, currentState, newCommits);
 
+  // Try AI-powered briefing
+  try {
+    const briefing = await synthesizeResumeBriefing({
+      checkpoint,
+      currentState,
+      commitsSinceCheckpoint: newCommits,
+      evidence,
+      projectName: project.repoFullName,
+    });
+    return briefing;
+  } catch {
+    // Bedrock unavailable — fall back to structured output
+  }
+
+  // Fallback: structured output
   const sections: string[] = [];
 
   // Section 1: Where You Left Off
