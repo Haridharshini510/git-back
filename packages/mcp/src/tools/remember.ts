@@ -8,6 +8,14 @@ import {
 } from "@gitback/core";
 import type { ActivityStatus } from "@gitback/core";
 
+function computeActivityStatus(lastCheckpointDate: string): "Active" | "Stalling" | "Dormant" {
+  const ms = Date.now() - new Date(lastCheckpointDate).getTime();
+  const days = ms / 86400000;
+  if (days <= 7) return "Active";
+  if (days <= 21) return "Stalling";
+  return "Dormant";
+}
+
 export const rememberToolDefinition = {
   name: "gitback_remember",
   description:
@@ -57,7 +65,7 @@ export async function handleRemember(args: {
       projectId: project.projectId,
       repoFullName: project.repoFullName,
       remoteUrl: project.remoteUrl,
-      activityStatus: "Active" as ActivityStatus,
+      activityStatus: computeActivityStatus(checkpoint.timestamp),
       summary: args.note.slice(0, 200),
       lastCheckpointAt: checkpoint.timestamp,
       lastCommitDate: checkpoint.recentCommits[0]?.date || null,

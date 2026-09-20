@@ -89,6 +89,19 @@ export interface ResumeContext {
   briefing: string | null;
 }
 
+export interface ContextSnapshot {
+  projectId: string;
+  timestamp: string;
+  checkpointId: string;
+  whereYouLeftOff: string;
+  whatChanged: string;
+  whatsNext: string[];
+  whatsDone: string[];
+  decisions: string[];
+  evidence: Evidence[];
+  oneLinerSummary: string;
+}
+
 export type ActivityStatus = "Active" | "Stalling" | "Dormant";
 
 export interface ProjectRecord {

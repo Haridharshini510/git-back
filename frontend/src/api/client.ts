@@ -33,6 +33,19 @@ export interface Checkpoint {
   diffSummary: string;
 }
 
+export interface ContextSnapshot {
+  projectId: string;
+  timestamp: string;
+  checkpointId: string;
+  whereYouLeftOff: string;
+  whatChanged: string;
+  whatsNext: string[];
+  whatsDone: string[];
+  decisions: string[];
+  evidence: { type: string; source: string; detail: string }[];
+  oneLinerSummary: string;
+}
+
 export async function listProjects(): Promise<ProjectRecord[]> {
   const data = await fetchApi<{ projects: ProjectRecord[] }>("/projects");
   return data.projects;
@@ -41,6 +54,7 @@ export async function listProjects(): Promise<ProjectRecord[]> {
 export async function getProject(projectId: string): Promise<{
   project: ProjectRecord;
   checkpoints: Checkpoint[];
+  context: ContextSnapshot | null;
 }> {
   return fetchApi(`/projects/${projectId}`);
 }

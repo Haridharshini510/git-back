@@ -5,7 +5,7 @@ import {
   QueryCommand,
   GetCommand,
 } from "@aws-sdk/lib-dynamodb";
-import type { Checkpoint, CheckpointSummary, ProjectRecord } from "./types.js";
+import type { Checkpoint, CheckpointSummary, ProjectRecord, ContextSnapshot } from "./types.js";
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION || "us-west-2",
@@ -125,4 +125,43 @@ export async function listProjectRecords(
 
   if (!result.Items) return [];
   return result.Items as unknown as ProjectRecord[];
+}
+
+export async function saveContextCloud(
+  userId: string,
+  context: ContextSnapshot
+): Promise<void> {
+  await dynamo.send(
+    new PutCommand({
+      TableName: tableName(),
+      Item: {
+        PK: `user#${userId}`,
+        SK: `CONTEXT#${context.projectId}#${context.timestamp}`,
+        GSI1PK: context.projectId,
+        GSI1SK: `CTX#${context.timestamp}`,
+        ...context,
+      },
+    })
+  );
+}
+
+export async function loadLatestContextCloud(
+  userId: string,
+  projectId: string
+): Promise<ContextSnapshot | null> {
+  const result = await dynamo.send(
+    new QueryCommand({
+      TableName: tableName(),
+      KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
+      ExpressionAttributeValues: {
+        ":pk": `user#${userId}`,
+        ":sk": `CONTEXT#${projectId}#`,
+      },
+      ScanIndexForward: false,
+      Limit: 1,
+    })
+  );
+
+  if (!result.Items || result.Items.length === 0) return null;
+  return result.Items[0] as unknown as ContextSnapshot;
 }

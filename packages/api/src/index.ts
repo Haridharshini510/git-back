@@ -4,6 +4,7 @@ import {
   listProjectRecords,
   listCheckpointsCloud,
   loadLatestCheckpointCloud,
+  loadLatestContextCloud,
 } from "@gitback/core";
 
 const app = express();
@@ -39,9 +40,13 @@ app.get("/projects/:projectId", async (req, res) => {
     // Also fetch the full latest checkpoint for the resume view
     const latestFull = await loadLatestCheckpointCloud(USER_ID, projectId);
 
+    // Fetch the latest context snapshot
+    const latestContext = await loadLatestContextCloud(USER_ID, projectId);
+
     res.json({
       project,
       checkpoints: latestFull ? [latestFull] : [],
+      context: latestContext,
     });
   } catch (err) {
     console.error("Error getting project:", err);

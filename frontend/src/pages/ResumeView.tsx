@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getProject, type ProjectRecord, type Checkpoint } from "../api/client";
+import { getProject, type ProjectRecord, type Checkpoint, type ContextSnapshot } from "../api/client";
 import { SectionCard } from "../components/SectionCard";
 import { EvidenceList } from "../components/EvidenceList";
 
@@ -22,6 +22,7 @@ export function ResumeView({
 }) {
   const [project, setProject] = useState<ProjectRecord | null>(null);
   const [checkpoints, setCheckpoints] = useState<Checkpoint[]>([]);
+  const [context, setContext] = useState<ContextSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,6 +30,7 @@ export function ResumeView({
       .then((data) => {
         setProject(data.project);
         setCheckpoints(data.checkpoints);
+        setContext(data.context);
       })
       .finally(() => setLoading(false));
   }, [projectId]);
@@ -71,7 +73,10 @@ export function ResumeView({
                 {timeAgo(latest.timestamp)} &mdash;{" "}
                 {new Date(latest.timestamp).toLocaleString()}
               </div>
-              <blockquote className="border-l-4 border-blue-400 pl-4 py-2 bg-blue-50 rounded-r text-gray-800">
+              {context?.whereYouLeftOff && (
+                <p className="text-gray-700 text-sm mb-3">{context.whereYouLeftOff}</p>
+              )}
+              <blockquote className="border-l-4 border-blue-400 pl-4 py-2 bg-blue-50 rounded-r text-gray-800 text-sm">
                 {latest.explicitNote}
               </blockquote>
               <div className="mt-3 flex gap-4 text-xs text-gray-500">
@@ -92,6 +97,54 @@ export function ResumeView({
                 )}
               </div>
             </SectionCard>
+
+            {/* AI-Generated: What Changed Since Then */}
+            {context?.whatChanged && (
+              <SectionCard title="What Changed Since Then">
+                <p className="text-gray-700 text-sm">{context.whatChanged}</p>
+              </SectionCard>
+            )}
+
+            {/* AI-Generated: What's Next */}
+            {context?.whatsNext && context.whatsNext.length > 0 && (
+              <SectionCard title="What's Next">
+                <ol className="list-decimal list-inside space-y-2">
+                  {context.whatsNext.map((step, i) => (
+                    <li key={i} className="text-sm text-gray-700">
+                      {step}
+                    </li>
+                  ))}
+                </ol>
+              </SectionCard>
+            )}
+
+            {/* AI-Generated: What's Done */}
+            {context?.whatsDone && context.whatsDone.length > 0 && (
+              <SectionCard title="What's Done">
+                <ul className="space-y-2">
+                  {context.whatsDone.map((item, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm">
+                      <span className="text-green-500 shrink-0 mt-0.5">&#10003;</span>
+                      <span className="text-gray-700">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </SectionCard>
+            )}
+
+            {/* AI-Generated: Decisions & Memory */}
+            {context?.decisions && context.decisions.length > 0 && (
+              <SectionCard title="Decisions & Memory">
+                <ul className="space-y-2">
+                  {context.decisions.map((decision, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm">
+                      <span className="text-blue-400 shrink-0 mt-0.5">&#9679;</span>
+                      <span className="text-gray-700">{decision}</span>
+                    </li>
+                  ))}
+                </ul>
+              </SectionCard>
+            )}
 
             {latest.gitStatus &&
               (latest.gitStatus.modified?.length > 0 ||

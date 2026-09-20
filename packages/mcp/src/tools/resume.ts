@@ -8,8 +8,10 @@ import {
   getGitDiffSummary,
   isGitRepo,
   synthesizeResumeBriefing,
+  synthesizeStructuredContext,
+  saveContextCloud,
 } from "@gitback/core";
-import type { CommitInfo, Evidence } from "@gitback/core";
+import type { CommitInfo, Evidence, ContextSnapshot } from "@gitback/core";
 
 function formatTimeSince(isoDate: string): string {
   const ms = Date.now() - new Date(isoDate).getTime();
@@ -109,6 +111,33 @@ export async function handleResume(args: {
       evidence,
       projectName: project.repoFullName,
     });
+
+    // Also generate and save structured context for the dashboard
+    try {
+      const structured = await synthesizeStructuredContext({
+        checkpoint,
+        currentState,
+        commitsSinceCheckpoint: newCommits,
+        evidence,
+        projectName: project.repoFullName,
+      });
+      const contextSnapshot: ContextSnapshot = {
+        projectId: project.projectId,
+        timestamp: new Date().toISOString(),
+        checkpointId: checkpoint.checkpointId,
+        whereYouLeftOff: structured.whereYouLeftOff,
+        whatChanged: structured.whatChanged,
+        whatsNext: structured.whatsNext,
+        whatsDone: structured.whatsDone,
+        decisions: structured.decisions,
+        evidence,
+        oneLinerSummary: structured.oneLinerSummary,
+      };
+      await saveContextCloud(userId, contextSnapshot);
+    } catch {
+      // Context save failed — briefing still returned to user
+    }
+
     return briefing;
   } catch {
     // Bedrock unavailable — fall back to structured output
