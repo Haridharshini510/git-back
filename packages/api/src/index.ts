@@ -14,10 +14,22 @@ app.use(express.json());
 const USER_ID = process.env.GITBACK_USER_ID || "demo-user";
 const PORT = parseInt(process.env.PORT || "3001", 10);
 
+function computeActivityStatus(lastDate: string | null): "Active" | "Stalling" | "Dormant" {
+  if (!lastDate) return "Dormant";
+  const days = (Date.now() - new Date(lastDate).getTime()) / 86400000;
+  if (days <= 7) return "Active";
+  if (days <= 21) return "Stalling";
+  return "Dormant";
+}
+
 app.get("/projects", async (_req, res) => {
   try {
     const projects = await listProjectRecords(USER_ID);
-    res.json({ projects });
+    const withStatus = projects.map((p) => ({
+      ...p,
+      activityStatus: computeActivityStatus(p.lastCheckpointAt),
+    }));
+    res.json({ projects: withStatus });
   } catch (err) {
     console.error("Error listing projects:", err);
     res.status(500).json({ error: "Failed to list projects" });

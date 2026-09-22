@@ -8,6 +8,12 @@
     "build": "npm run build --workspaces",
     "build:core": "npm run build -w packages/core",
     "build:mcp": "npm run build -w packages/mcp",
-    "build:api": "npm run build -w packages/api"
+    "build:api": "npm run build -w packages/api",
+    "start:api": "node --env-file=.env packages/api/dist/index.js",
+    "start:mcp": "node --env-file=.env packages/mcp/dist/index.js",
+    "dev:api": "node --env-file=.env --watch packages/api/dist/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.1"
   }
 }

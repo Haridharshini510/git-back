@@ -8,12 +8,12 @@ import {
 import type { Checkpoint, CheckpointSummary, ProjectRecord, ContextSnapshot } from "./types.js";
 
 const client = new DynamoDBClient({
-  region: process.env.GITBACK_AWS_REGION || process.env.AWS_REGION || "us-west-2",
+  region: process.env.GITBACK_AWS_REGION || process.env.AWS_REGION || "us-east-1",
 });
 const dynamo = DynamoDBDocumentClient.from(client);
 
 function tableName(): string {
-  return process.env.GITBACK_TABLE || "claude-code-gitback";
+  return process.env.GITBACK_TABLE || "claude-code-gitback-dev";
 }
 
 export async function saveCheckpointCloud(

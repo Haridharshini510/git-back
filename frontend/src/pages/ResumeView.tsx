@@ -13,6 +13,12 @@ function timeAgo(iso: string): string {
   return `${days}d ago`;
 }
 
+const statusDot: Record<string, string> = {
+  Active: "bg-green-400",
+  Stalling: "bg-yellow-400",
+  Dormant: "bg-red-400",
+};
+
 export function ResumeView({
   projectId,
   onBack,
@@ -36,25 +42,40 @@ export function ResumeView({
   }, [projectId]);
 
   if (loading) {
-    return <div className="p-8 text-gray-500">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="inline-block w-6 h-6 border-2 border-zinc-700 border-t-blue-500 rounded-full animate-spin" />
+      </div>
+    );
   }
 
   const latest = checkpoints[0] || null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-6 py-4">
+    <div className="min-h-screen bg-zinc-950">
+      <header className="border-b border-zinc-800">
+        <div className="max-w-4xl mx-auto px-6 py-6">
           <button
             onClick={onBack}
-            className="text-blue-600 text-sm hover:underline mb-2"
+            className="inline-flex items-center gap-1.5 text-zinc-500 text-sm hover:text-zinc-300 transition-colors mb-4"
           >
-            &larr; Back to Dashboard
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Dashboard
           </button>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {project?.repoFullName || projectId}
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-2xl font-bold text-white font-mono">
+              {project?.repoFullName || projectId}
+            </h1>
+            {project?.activityStatus && (
+              <span className="inline-flex items-center gap-1.5 text-xs text-zinc-400">
+                <span className={`w-2 h-2 rounded-full ${statusDot[project.activityStatus] || statusDot.Dormant}`} />
+                {project.activityStatus}
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-zinc-500">
             {project?.summary || "No summary available"}
           </p>
         </div>
@@ -62,84 +83,96 @@ export function ResumeView({
 
       <main className="max-w-4xl mx-auto px-6 py-8">
         {!latest ? (
-          <div className="text-center py-12 text-gray-500">
-            No checkpoints yet. Use <code>gitback_remember</code> to save your
-            first checkpoint.
+          <div className="text-center py-20">
+            <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl text-zinc-600">?</span>
+            </div>
+            <h3 className="text-lg font-semibold text-zinc-300 mb-2">No checkpoints yet</h3>
+            <p className="text-zinc-500 text-sm">
+              Use <code className="bg-zinc-800 text-blue-400 px-2 py-0.5 rounded text-xs">gitback_remember</code> to save your first checkpoint.
+            </p>
           </div>
         ) : (
           <>
             <SectionCard title="Where You Left Off">
-              <div className="text-sm text-gray-500 mb-2">
-                {timeAgo(latest.timestamp)} &mdash;{" "}
-                {new Date(latest.timestamp).toLocaleString()}
+              <div className="flex items-center gap-2 text-xs text-zinc-500 mb-3">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {timeAgo(latest.timestamp)} &mdash; {new Date(latest.timestamp).toLocaleString()}
               </div>
               {context?.whereYouLeftOff && (
-                <p className="text-gray-700 text-sm mb-3">{context.whereYouLeftOff}</p>
+                <p className="text-zinc-300 text-sm mb-3 leading-relaxed">{context.whereYouLeftOff}</p>
               )}
-              <blockquote className="border-l-4 border-blue-400 pl-4 py-2 bg-blue-50 rounded-r text-gray-800 text-sm">
+              <blockquote className="border-l-2 border-blue-500/40 pl-4 py-2 bg-blue-500/5 rounded-r-lg text-zinc-300 text-sm italic">
                 {latest.explicitNote}
               </blockquote>
-              <div className="mt-3 flex gap-4 text-xs text-gray-500">
-                <span>
-                  Branch:{" "}
-                  <code className="bg-gray-100 px-1 rounded">
-                    {latest.branch}
-                  </code>
+              <div className="mt-4 flex flex-wrap gap-3 text-xs">
+                <span className="inline-flex items-center gap-1.5 bg-zinc-800 text-zinc-400 px-2.5 py-1 rounded-md">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                  <code className="font-mono">{latest.branch}</code>
                 </span>
-                <span>
-                  Commit:{" "}
-                  <code className="bg-gray-100 px-1 rounded">
-                    {latest.commitSha?.slice(0, 7)}
-                  </code>
+                <span className="inline-flex items-center gap-1.5 bg-zinc-800 text-zinc-400 px-2.5 py-1 rounded-md">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                  </svg>
+                  <code className="font-mono">{latest.commitSha?.slice(0, 7)}</code>
                 </span>
-                {latest.tags && latest.tags.length > 0 && (
-                  <span>Tags: {latest.tags.join(", ")}</span>
-                )}
+                {latest.tags && latest.tags.length > 0 && latest.tags.map((tag) => (
+                  <span key={tag} className="bg-purple-500/10 text-purple-300 border border-purple-500/20 px-2.5 py-1 rounded-md font-mono">
+                    {tag}
+                  </span>
+                ))}
               </div>
             </SectionCard>
 
-            {/* AI-Generated: What Changed Since Then */}
             {context?.whatChanged && (
               <SectionCard title="What Changed Since Then">
-                <p className="text-gray-700 text-sm">{context.whatChanged}</p>
+                <p className="text-zinc-300 text-sm leading-relaxed">{context.whatChanged}</p>
               </SectionCard>
             )}
 
-            {/* AI-Generated: What's Next */}
             {context?.whatsNext && context.whatsNext.length > 0 && (
               <SectionCard title="What's Next">
-                <ol className="list-decimal list-inside space-y-2">
+                <ol className="space-y-3">
                   {context.whatsNext.map((step, i) => (
-                    <li key={i} className="text-sm text-gray-700">
-                      {step}
+                    <li key={i} className="flex items-start gap-3 text-sm">
+                      <span className="shrink-0 w-6 h-6 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 flex items-center justify-center text-xs font-mono">
+                        {i + 1}
+                      </span>
+                      <span className="text-zinc-300 pt-0.5 leading-relaxed">{step}</span>
                     </li>
                   ))}
                 </ol>
               </SectionCard>
             )}
 
-            {/* AI-Generated: What's Done */}
             {context?.whatsDone && context.whatsDone.length > 0 && (
               <SectionCard title="What's Done">
-                <ul className="space-y-2">
+                <ul className="space-y-2.5">
                   {context.whatsDone.map((item, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
-                      <span className="text-green-500 shrink-0 mt-0.5">&#10003;</span>
-                      <span className="text-gray-700">{item}</span>
+                    <li key={i} className="flex items-start gap-3 text-sm">
+                      <span className="shrink-0 w-5 h-5 rounded bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center mt-0.5">
+                        <svg className="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </span>
+                      <span className="text-zinc-300 leading-relaxed">{item}</span>
                     </li>
                   ))}
                 </ul>
               </SectionCard>
             )}
 
-            {/* AI-Generated: Decisions & Memory */}
             {context?.decisions && context.decisions.length > 0 && (
               <SectionCard title="Decisions & Memory">
-                <ul className="space-y-2">
+                <ul className="space-y-2.5">
                   {context.decisions.map((decision, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
-                      <span className="text-blue-400 shrink-0 mt-0.5">&#9679;</span>
-                      <span className="text-gray-700">{decision}</span>
+                    <li key={i} className="flex items-start gap-3 text-sm">
+                      <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-purple-400 mt-2" />
+                      <span className="text-zinc-300 leading-relaxed">{decision}</span>
                     </li>
                   ))}
                 </ul>
@@ -153,18 +186,18 @@ export function ResumeView({
                 <SectionCard title="Files at Checkpoint">
                   <div className="space-y-1 text-sm font-mono">
                     {(latest.gitStatus.modified || []).map((f) => (
-                      <div key={f.path} className="text-orange-600">
-                        M {f.path}
+                      <div key={f.path} className="text-orange-400/80">
+                        <span className="text-orange-400 font-semibold">M</span> {f.path}
                       </div>
                     ))}
                     {(latest.gitStatus.staged || []).map((f) => (
-                      <div key={f.path} className="text-green-600">
-                        A {f.path}
+                      <div key={f.path} className="text-green-400/80">
+                        <span className="text-green-400 font-semibold">A</span> {f.path}
                       </div>
                     ))}
                     {(latest.gitStatus.untracked || []).map((f) => (
-                      <div key={f} className="text-gray-400">
-                        ? {f}
+                      <div key={f} className="text-zinc-600">
+                        <span className="text-zinc-500 font-semibold">?</span> {f}
                       </div>
                     ))}
                   </div>
@@ -173,16 +206,16 @@ export function ResumeView({
 
             {latest.todos && latest.todos.length > 0 && (
               <SectionCard title="TODOs">
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {latest.todos.map((todo, i) => (
-                    <div key={i} className="flex items-start gap-2 text-sm">
-                      <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-0.5 rounded">
+                    <div key={i} className="flex items-start gap-3 text-sm">
+                      <span className="shrink-0 bg-yellow-500/15 border border-yellow-500/20 text-yellow-300 text-xs font-mono px-2 py-0.5 rounded-md">
                         {todo.type}
                       </span>
-                      <code className="text-xs text-gray-500">
+                      <code className="text-xs text-zinc-500 font-mono pt-0.5">
                         {todo.file}:{todo.line}
                       </code>
-                      <span className="text-gray-700">{todo.text}</span>
+                      <span className="text-zinc-300 pt-0.5">{todo.text}</span>
                     </div>
                   ))}
                 </div>
@@ -193,14 +226,11 @@ export function ResumeView({
               <SectionCard title="Recent Commits">
                 <div className="space-y-2">
                   {latest.recentCommits.slice(0, 5).map((c) => (
-                    <div
-                      key={c.sha}
-                      className="flex items-start gap-2 text-sm"
-                    >
-                      <code className="text-xs text-gray-400 shrink-0">
+                    <div key={c.sha} className="flex items-start gap-3 text-sm">
+                      <code className="text-xs text-blue-400/70 font-mono shrink-0 pt-0.5">
                         {c.sha.slice(0, 7)}
                       </code>
-                      <span className="text-gray-700">{c.message}</span>
+                      <span className="text-zinc-300">{c.message}</span>
                     </div>
                   ))}
                 </div>
@@ -213,16 +243,17 @@ export function ResumeView({
 
             {checkpoints.length > 1 && (
               <SectionCard title="Checkpoint History">
-                <div className="space-y-3">
-                  {checkpoints.map((cp) => (
+                <div className="space-y-0">
+                  {checkpoints.map((cp, i) => (
                     <div
                       key={cp.checkpointId}
-                      className="border-l-2 border-gray-200 pl-4 py-1"
+                      className={`relative pl-6 py-3 ${i < checkpoints.length - 1 ? "border-l border-zinc-800" : ""}`}
                     >
-                      <div className="text-xs text-gray-400">
+                      <div className="absolute left-0 top-4 w-2 h-2 rounded-full bg-zinc-700 -translate-x-[4.5px]" />
+                      <div className="text-xs text-zinc-600 font-mono">
                         {timeAgo(cp.timestamp)} &mdash; {cp.branch}
                       </div>
-                      <div className="text-sm text-gray-700 mt-0.5">
+                      <div className="text-sm text-zinc-400 mt-1">
                         {cp.explicitNote}
                       </div>
                     </div>

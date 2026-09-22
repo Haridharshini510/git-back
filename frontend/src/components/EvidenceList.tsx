@@ -1,10 +1,10 @@
-const typeColors: Record<string, string> = {
-  CHECKPOINT: "bg-purple-100 text-purple-800",
-  COMMIT: "bg-blue-100 text-blue-800",
-  DIFF: "bg-orange-100 text-orange-800",
-  FILE: "bg-green-100 text-green-800",
-  TODO: "bg-yellow-100 text-yellow-800",
-  BRANCH: "bg-gray-100 text-gray-800",
+const typeConfig: Record<string, { bg: string; text: string }> = {
+  CHECKPOINT: { bg: "bg-purple-500/15 border border-purple-500/20", text: "text-purple-300" },
+  COMMIT: { bg: "bg-blue-500/15 border border-blue-500/20", text: "text-blue-300" },
+  DIFF: { bg: "bg-orange-500/15 border border-orange-500/20", text: "text-orange-300" },
+  FILE: { bg: "bg-green-500/15 border border-green-500/20", text: "text-green-300" },
+  TODO: { bg: "bg-yellow-500/15 border border-yellow-500/20", text: "text-yellow-300" },
+  BRANCH: { bg: "bg-zinc-500/15 border border-zinc-500/20", text: "text-zinc-300" },
 };
 
 export function EvidenceList({
@@ -59,21 +59,20 @@ export function EvidenceList({
 
   return (
     <div className="space-y-2">
-      {items.map((item, i) => (
-        <div key={i} className="flex items-start gap-3 text-sm">
-          <span
-            className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded ${
-              typeColors[item.type] || typeColors.FILE
-            }`}
-          >
-            {item.type}
-          </span>
-          <span className="text-gray-500 shrink-0 font-mono text-xs">
-            {item.source}
-          </span>
-          <span className="text-gray-700">{item.detail}</span>
-        </div>
-      ))}
+      {items.map((item, i) => {
+        const config = typeConfig[item.type] || typeConfig.FILE;
+        return (
+          <div key={i} className="flex items-start gap-3 text-sm py-1.5">
+            <span className={`shrink-0 text-xs font-mono font-medium px-2 py-0.5 rounded-md ${config.bg} ${config.text}`}>
+              {item.type}
+            </span>
+            <span className="text-zinc-500 shrink-0 font-mono text-xs pt-0.5">
+              {item.source}
+            </span>
+            <span className="text-zinc-300 pt-0.5">{item.detail}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }

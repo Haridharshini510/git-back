@@ -5,7 +5,7 @@ import {
 import type { Checkpoint, GitState, Evidence, CommitInfo } from "./types.js";
 
 const client = new BedrockRuntimeClient({
-  region: process.env.GITBACK_AWS_REGION || process.env.AWS_REGION || "us-west-2",
+  region: process.env.GITBACK_AWS_REGION || process.env.AWS_REGION || "us-east-1",
 });
 
 const MODEL_ID =
