@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { TodoItem } from "./types.js";
 
-const TODO_PATTERN = /\b(TODO|FIXME|HACK|XXX)\b[:\s]*(.*)/i;
+const TODO_PATTERN = /\b(TODO|FIXME|HACK|XXX)\b[:\s]+(.*)/;
 
 export function scanTodos(files: string[], cwd?: string): TodoItem[] {
   const basePath = cwd ?? process.cwd();

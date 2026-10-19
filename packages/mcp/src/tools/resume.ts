@@ -3,7 +3,7 @@ import {
   loadLatestCheckpointCloud,
   resolveProject,
   getGitState,
-  getRecentCommits,
+  getCommitsSince,
   gatherEvidence,
   getGitDiffSummary,
   isGitRepo,
@@ -11,7 +11,7 @@ import {
   synthesizeStructuredContext,
   saveContextCloud,
 } from "@gitback/core";
-import type { CommitInfo, Evidence, ContextSnapshot } from "@gitback/core";
+import type { Evidence, ContextSnapshot } from "@gitback/core";
 
 function formatTimeSince(isoDate: string): string {
   const ms = Date.now() - new Date(isoDate).getTime();
@@ -21,15 +21,6 @@ function formatTimeSince(isoDate: string): string {
   if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
   const days = Math.floor(hours / 24);
   return `${days} day${days > 1 ? "s" : ""} ago`;
-}
-
-function commitsSinceCheckpoint(
-  recentCommits: CommitInfo[],
-  checkpointSha: string
-): CommitInfo[] {
-  const idx = recentCommits.findIndex((c) => c.sha === checkpointSha);
-  if (idx === -1) return recentCommits;
-  return recentCommits.slice(0, idx);
 }
 
 function formatEvidence(evidence: Evidence[]): string {
@@ -65,16 +56,15 @@ export async function handleResume(args: {
   const project = resolveProject();
   const currentState = getGitState();
 
-  // Try cloud first, fall back to local
-  const userId = process.env.GITBACK_USER_ID || "demo-user";
-  let checkpoint = null;
-  try {
-    checkpoint = await loadLatestCheckpointCloud(userId, project.projectId);
-  } catch {
-    // Cloud unavailable
-  }
-  if (!checkpoint) {
-    checkpoint = loadLatestCheckpointLocal(project.projectId);
+  // Try local first, then cloud if configured
+  let checkpoint = loadLatestCheckpointLocal(project.projectId);
+  const userId = process.env.GITBACK_USER_ID;
+  if (!checkpoint && userId) {
+    try {
+      checkpoint = await loadLatestCheckpointCloud(userId, project.projectId);
+    } catch {
+      // Cloud unavailable
+    }
   }
 
   if (!checkpoint) {
@@ -95,52 +85,48 @@ export async function handleResume(args: {
     ].join("\n");
   }
 
-  const newCommits = commitsSinceCheckpoint(
+  const newCommits = getCommitsSince(
     currentState.recentCommits,
     checkpoint.commitSha
   );
   const diffSummary = getGitDiffSummary(checkpoint.commitSha);
   const evidence = gatherEvidence(checkpoint, currentState, newCommits);
 
-  // Try AI-powered briefing
-  try {
-    const briefing = await synthesizeResumeBriefing({
-      checkpoint,
-      currentState,
-      commitsSinceCheckpoint: newCommits,
-      evidence,
-      projectName: project.repoFullName,
-    });
+  // Try AI-powered briefing (returns null if no LLM configured)
+  const synthesisInput = {
+    checkpoint,
+    currentState,
+    commitsSinceCheckpoint: newCommits,
+    evidence,
+    projectName: project.repoFullName,
+  };
 
+  const briefing = await synthesizeResumeBriefing(synthesisInput).catch(() => null);
+
+  if (briefing) {
     // Also generate and save structured context for the dashboard
     try {
-      const structured = await synthesizeStructuredContext({
-        checkpoint,
-        currentState,
-        commitsSinceCheckpoint: newCommits,
-        evidence,
-        projectName: project.repoFullName,
-      });
-      const contextSnapshot: ContextSnapshot = {
-        projectId: project.projectId,
-        timestamp: new Date().toISOString(),
-        checkpointId: checkpoint.checkpointId,
-        whereYouLeftOff: structured.whereYouLeftOff,
-        whatChanged: structured.whatChanged,
-        whatsNext: structured.whatsNext,
-        whatsDone: structured.whatsDone,
-        decisions: structured.decisions,
-        evidence,
-        oneLinerSummary: structured.oneLinerSummary,
-      };
-      await saveContextCloud(userId, contextSnapshot);
+      const structured = await synthesizeStructuredContext(synthesisInput);
+      if (structured && userId) {
+        const contextSnapshot: ContextSnapshot = {
+          projectId: project.projectId,
+          timestamp: new Date().toISOString(),
+          checkpointId: checkpoint.checkpointId,
+          whereYouLeftOff: structured.whereYouLeftOff,
+          whatChanged: structured.whatChanged,
+          whatsNext: structured.whatsNext,
+          whatsDone: structured.whatsDone,
+          decisions: structured.decisions,
+          evidence,
+          oneLinerSummary: structured.oneLinerSummary,
+        };
+        await saveContextCloud(userId, contextSnapshot);
+      }
     } catch {
       // Context save failed — briefing still returned to user
     }
 
     return briefing;
-  } catch {
-    // Bedrock unavailable — fall back to structured output
   }
 
   // Fallback: structured output

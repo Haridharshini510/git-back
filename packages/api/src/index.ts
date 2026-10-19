@@ -47,17 +47,16 @@ app.get("/projects/:projectId", async (req, res) => {
       return;
     }
 
-    const checkpoints = await listCheckpointsCloud(USER_ID, projectId);
-
-    // Also fetch the full latest checkpoint for the resume view
-    const latestFull = await loadLatestCheckpointCloud(USER_ID, projectId);
-
-    // Fetch the latest context snapshot
-    const latestContext = await loadLatestContextCloud(USER_ID, projectId);
+    const [checkpoints, latestFull, latestContext] = await Promise.all([
+      listCheckpointsCloud(USER_ID, projectId),
+      loadLatestCheckpointCloud(USER_ID, projectId),
+      loadLatestContextCloud(USER_ID, projectId),
+    ]);
 
     res.json({
       project,
-      checkpoints: latestFull ? [latestFull] : [],
+      checkpoints,
+      latestCheckpoint: latestFull,
       context: latestContext,
     });
   } catch (err) {

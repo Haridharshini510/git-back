@@ -51,9 +51,19 @@ export async function listProjects(): Promise<ProjectRecord[]> {
   return data.projects;
 }
 
+export interface CheckpointSummary {
+  checkpointId: string;
+  timestamp: string;
+  note: string;
+  branch: string;
+  commitSha: string;
+  fileCount: number;
+}
+
 export async function getProject(projectId: string): Promise<{
   project: ProjectRecord;
-  checkpoints: Checkpoint[];
+  checkpoints: CheckpointSummary[];
+  latestCheckpoint: Checkpoint | null;
   context: ContextSnapshot | null;
 }> {
   return fetchApi(`/projects/${projectId}`);

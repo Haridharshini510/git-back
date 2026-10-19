@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getProject, type ProjectRecord, type Checkpoint, type ContextSnapshot } from "../api/client";
+import { getProject, type ProjectRecord, type Checkpoint, type CheckpointSummary, type ContextSnapshot } from "../api/client";
 import { SectionCard } from "../components/SectionCard";
 import { EvidenceList } from "../components/EvidenceList";
 
@@ -27,17 +27,21 @@ export function ResumeView({
   onBack: () => void;
 }) {
   const [project, setProject] = useState<ProjectRecord | null>(null);
-  const [checkpoints, setCheckpoints] = useState<Checkpoint[]>([]);
+  const [latest, setLatest] = useState<Checkpoint | null>(null);
+  const [checkpointHistory, setCheckpointHistory] = useState<CheckpointSummary[]>([]);
   const [context, setContext] = useState<ContextSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getProject(projectId)
       .then((data) => {
         setProject(data.project);
-        setCheckpoints(data.checkpoints);
+        setLatest(data.latestCheckpoint);
+        setCheckpointHistory(data.checkpoints);
         setContext(data.context);
       })
+      .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [projectId]);
 
@@ -49,7 +53,18 @@ export function ResumeView({
     );
   }
 
-  const latest = checkpoints[0] || null;
+  if (error) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-400 text-sm mb-4">{error}</p>
+          <button onClick={onBack} className="text-sm text-zinc-400 hover:text-zinc-200 transition-colors">
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950">
@@ -238,23 +253,37 @@ export function ResumeView({
             )}
 
             <SectionCard title="Evidence">
-              <EvidenceList checkpoint={latest} />
+              {context?.evidence && context.evidence.length > 0 ? (
+                <div className="space-y-2">
+                  {context.evidence.map((item, i) => (
+                    <div key={i} className="flex items-start gap-3 text-sm py-1.5">
+                      <span className="shrink-0 text-xs font-mono font-medium px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300">
+                        {item.type}
+                      </span>
+                      <span className="text-zinc-500 shrink-0 font-mono text-xs pt-0.5">{item.source}</span>
+                      <span className="text-zinc-300 pt-0.5">{item.detail}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EvidenceList checkpoint={latest} />
+              )}
             </SectionCard>
 
-            {checkpoints.length > 1 && (
+            {checkpointHistory.length > 1 && (
               <SectionCard title="Checkpoint History">
                 <div className="space-y-0">
-                  {checkpoints.map((cp, i) => (
+                  {checkpointHistory.map((cp, i) => (
                     <div
                       key={cp.checkpointId}
-                      className={`relative pl-6 py-3 ${i < checkpoints.length - 1 ? "border-l border-zinc-800" : ""}`}
+                      className={`relative pl-6 py-3 ${i < checkpointHistory.length - 1 ? "border-l border-zinc-800" : ""}`}
                     >
                       <div className="absolute left-0 top-4 w-2 h-2 rounded-full bg-zinc-700 -translate-x-[4.5px]" />
                       <div className="text-xs text-zinc-600 font-mono">
                         {timeAgo(cp.timestamp)} &mdash; {cp.branch}
                       </div>
                       <div className="text-sm text-zinc-400 mt-1">
-                        {cp.explicitNote}
+                        {cp.note}
                       </div>
                     </div>
                   ))}

@@ -4,9 +4,9 @@ import {
   resolveProject,
   getGitState,
   getGitDiffSummary,
+  getCommitsSince,
   isGitRepo,
 } from "@gitback/core";
-import type { CommitInfo } from "@gitback/core";
 
 export const compareToolDefinition = {
   name: "gitback_compare",
@@ -18,31 +18,21 @@ export const compareToolDefinition = {
   },
 };
 
-function commitsSinceCheckpoint(
-  recentCommits: CommitInfo[],
-  checkpointSha: string
-): CommitInfo[] {
-  const idx = recentCommits.findIndex((c) => c.sha === checkpointSha);
-  if (idx === -1) return recentCommits;
-  return recentCommits.slice(0, idx);
-}
-
 export async function handleCompare(): Promise<string> {
   if (!isGitRepo()) {
     return "Error: Not inside a git repository.";
   }
 
   const project = resolveProject();
-  const userId = process.env.GITBACK_USER_ID || "demo-user";
 
-  let checkpoint = null;
-  try {
-    checkpoint = await loadLatestCheckpointCloud(userId, project.projectId);
-  } catch {
-    // fall through
-  }
-  if (!checkpoint) {
-    checkpoint = loadLatestCheckpointLocal(project.projectId);
+  let checkpoint = loadLatestCheckpointLocal(project.projectId);
+  const userId = process.env.GITBACK_USER_ID;
+  if (!checkpoint && userId) {
+    try {
+      checkpoint = await loadLatestCheckpointCloud(userId, project.projectId);
+    } catch {
+      // Cloud unavailable
+    }
   }
 
   if (!checkpoint) {
@@ -50,7 +40,7 @@ export async function handleCompare(): Promise<string> {
   }
 
   const currentState = getGitState();
-  const newCommits = commitsSinceCheckpoint(
+  const newCommits = getCommitsSince(
     currentState.recentCommits,
     checkpoint.commitSha
   );

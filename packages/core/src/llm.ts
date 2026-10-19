@@ -1,15 +1,10 @@
-import {
-  BedrockRuntimeClient,
-  InvokeModelCommand,
-} from "@aws-sdk/client-bedrock-runtime";
 import type { Checkpoint, GitState, Evidence, CommitInfo } from "./types.js";
 
-const client = new BedrockRuntimeClient({
-  region: process.env.GITBACK_AWS_REGION || process.env.AWS_REGION || "us-east-1",
-});
-
-const MODEL_ID =
-  process.env.BEDROCK_MODEL_ID || "us.anthropic.claude-sonnet-4-5-20250929-v1:0";
+export interface LlmConfig {
+  baseUrl: string;
+  apiKey: string;
+  model: string;
+}
 
 export interface SynthesisInput {
   checkpoint: Checkpoint | null;
@@ -28,58 +23,84 @@ export interface StructuredContext {
   oneLinerSummary: string;
 }
 
-export async function synthesizeResumeBriefing(
-  input: SynthesisInput
-): Promise<string> {
-  const prompt = buildPrompt(input);
+function getConfig(): LlmConfig | null {
+  const baseUrl = process.env.GITBACK_LLM_BASE_URL;
+  if (!baseUrl) return null;
 
-  const body = JSON.stringify({
-    anthropic_version: "bedrock-2023-05-31",
-    max_tokens: 1500,
-    messages: [{ role: "user", content: prompt }],
+  return {
+    baseUrl: baseUrl.replace(/\/$/, ""),
+    apiKey: process.env.GITBACK_LLM_API_KEY || "",
+    model: process.env.GITBACK_LLM_MODEL || "llama3.1:8b",
+  };
+}
+
+export async function isLlmAvailable(): Promise<boolean> {
+  const config = getConfig();
+  if (!config) return false;
+
+  try {
+    const res = await fetch(`${config.baseUrl}/models`, {
+      method: "GET",
+      headers: config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {},
+      signal: AbortSignal.timeout(3000),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function chatCompletion(
+  config: LlmConfig,
+  messages: { role: string; content: string }[],
+  maxTokens: number
+): Promise<string> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (config.apiKey) headers["Authorization"] = `Bearer ${config.apiKey}`;
+
+  const res = await fetch(`${config.baseUrl}/chat/completions`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      model: config.model,
+      messages,
+      max_tokens: maxTokens,
+      temperature: 0.3,
+    }),
+    signal: AbortSignal.timeout(60000),
   });
 
-  const response = await client.send(
-    new InvokeModelCommand({
-      modelId: MODEL_ID,
-      contentType: "application/json",
-      accept: "application/json",
-      body,
-    })
-  );
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`LLM request failed (${res.status}): ${text}`);
+  }
 
-  const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-  return responseBody.content[0].text;
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || "";
+}
+
+export async function synthesizeResumeBriefing(
+  input: SynthesisInput
+): Promise<string | null> {
+  const config = getConfig();
+  if (!config) return null;
+
+  const prompt = buildPrompt(input);
+  return chatCompletion(config, [{ role: "user", content: prompt }], 1500);
 }
 
 export async function synthesizeStructuredContext(
   input: SynthesisInput
-): Promise<StructuredContext> {
+): Promise<StructuredContext | null> {
+  const config = getConfig();
+  if (!config) return null;
+
   const prompt = buildStructuredPrompt(input);
+  const text = await chatCompletion(config, [{ role: "user", content: prompt }], 2000);
 
-  const body = JSON.stringify({
-    anthropic_version: "bedrock-2023-05-31",
-    max_tokens: 2000,
-    messages: [{ role: "user", content: prompt }],
-  });
-
-  const response = await client.send(
-    new InvokeModelCommand({
-      modelId: MODEL_ID,
-      contentType: "application/json",
-      accept: "application/json",
-      body,
-    })
-  );
-
-  const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-  const text = responseBody.content[0].text;
-
-  // Extract JSON from the response (handle markdown code blocks)
   const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    throw new Error("Failed to parse structured context from Bedrock response");
-  }
+  if (!jsonMatch) return null;
+
   return JSON.parse(jsonMatch[0]) as StructuredContext;
 }
 
@@ -169,7 +190,7 @@ function buildPrompt(input: SynthesisInput): string {
 }
 
 function buildStructuredPrompt(input: SynthesisInput): string {
-  const { checkpoint, currentState, commitsSinceCheckpoint, evidence, projectName } = input;
+  const { checkpoint, currentState, commitsSinceCheckpoint, projectName } = input;
 
   const contextLines: string[] = [];
 
