@@ -2,8 +2,12 @@
   "name": "gitback",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "frontend"
   ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "build": "npm run build --workspaces",
     "build:core": "npm run build -w packages/core",

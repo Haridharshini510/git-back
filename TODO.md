@@ -32,7 +32,7 @@ The fastest way for anyone to try GitBack.
 - [x] **`gitback resume` command** — Local checkpoint + optional LLM synthesis. `--full` flag.
 - [x] **`gitback compare` command** — Changes since last checkpoint.
 - [x] **`gitback status` command** — Scans `~/.gitback/projects/` locally.
-- [ ] **`gitback config` command** — Set/view LLM provider config. Stores in `~/.gitback/config.json`.
+- [x] **`gitback config` command** — Set/view LLM provider config. Stores in `~/.gitback/config.json`.
 - [x] **Make CLI work fully offline** — All commands use local storage, no cloud dependency.
 - [x] **`npx` support** — Package structured with `bin` field.
 
@@ -76,14 +76,14 @@ Everything needed before the first public release.
 - [x] **Write README.md** — Quickstart, MCP setup, LLM config, CLI docs, architecture, contributing.
 - [x] **Create `.env.example`** — All env vars documented with provider examples.
 - [x] **Add LICENSE** — MIT.
-- [ ] **Add CONTRIBUTING.md** — Dev setup, how to build, how to run tests, PR process.
-- [ ] **Create GitHub issue templates** — Bug report, feature request.
-- [ ] **Add CI with GitHub Actions** — Build, lint, type-check on PR.
-- [ ] **Add `engines` field to package.json** — Specify minimum Node.js version.
-- [ ] **Remove `docs/superpowers/` directory** — Internal planning artifact, not relevant to OSS.
-- [ ] **Remove `docs/demo-script.md`** — Internal hackathon artifact.
-- [ ] **Set up npm workspace properly** — Ensure `npm install` from root works cleanly for contributors.
-- [ ] **Add TypeScript strict mode** — Enable `strict: true` across all tsconfigs.
+- [x] **Add CONTRIBUTING.md** — Dev setup, how to build, how to run tests, PR process.
+- [x] **Create GitHub issue templates** — Bug report, feature request.
+- [x] **Add CI with GitHub Actions** — Build, lint, type-check on PR.
+- [x] **Add `engines` field to package.json** — Specify minimum Node.js version.
+- [x] **Remove `docs/superpowers/` directory** — Internal planning artifact, not relevant to OSS.
+- [x] **Remove `docs/demo-script.md`** — Internal hackathon artifact.
+- [x] **Set up npm workspace properly** — Ensure `npm install` from root works cleanly for contributors.
+- [x] **Add TypeScript strict mode** — Enable `strict: true` across all tsconfigs.
 
 ## Phase 8: Testing
 Add tests to the critical paths.
