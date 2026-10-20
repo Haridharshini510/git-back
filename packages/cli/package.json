@@ -1,11 +1,12 @@
 {
-  "name": "@gitback/cli",
+  "name": "gitback-cli",
   "version": "0.1.0",
-  "private": true,
+  "description": "CLI for GitBack — persistent development memory. Remember where you left off.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "gitback": "dist/index.js"
+    "gitback": "dist/index.js",
+    "gitback-cli": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -14,8 +15,16 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "keywords": ["git", "cli", "developer-tools", "context", "memory", "productivity"],
+  "author": "Haridharshini510",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Haridharshini510/gitback",
+    "directory": "packages/cli"
+  },
   "dependencies": {
-    "@gitback/core": "*"
+    "gitback-core": "0.1.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

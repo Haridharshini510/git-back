@@ -1,7 +1,7 @@
 {
-  "name": "@gitback/core",
+  "name": "gitback-core",
   "version": "0.1.0",
-  "private": true,
+  "description": "Core library for GitBack — persistent development memory",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,9 +11,15 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "keywords": ["git", "developer-tools", "context", "memory", "mcp"],
+  "author": "Haridharshini510",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Haridharshini510/gitback",
+    "directory": "packages/core"
+  },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.1136.0",
-    "@aws-sdk/lib-dynamodb": "^3.1136.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

@@ -1,7 +1,7 @@
 {
-  "name": "@gitback/mcp",
+  "name": "gitback-mcp",
   "version": "0.1.0",
-  "private": true,
+  "description": "MCP server for GitBack — persistent development memory for AI coding agents",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -14,8 +14,16 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "keywords": ["mcp", "git", "developer-tools", "context", "memory", "claude", "cursor", "ai-agent"],
+  "author": "Haridharshini510",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Haridharshini510/gitback",
+    "directory": "packages/mcp"
+  },
   "dependencies": {
-    "@gitback/core": "*",
+    "gitback-core": "0.1.0",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "zod": "^4.6.5"
   },

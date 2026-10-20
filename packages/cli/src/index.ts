@@ -13,8 +13,8 @@ import {
   isGitRepo,
   synthesizeResumeBriefing,
   isLlmAvailable,
-} from "@gitback/core";
-import type { Evidence } from "@gitback/core";
+} from "gitback-core";
+import type { Evidence } from "gitback-core";
 
 const HELP = `
 gitback — persistent development memory

@@ -1,5 +1,3 @@
-import { listProjectRecords } from "@gitback/core";
-import type { ProjectRecord } from "@gitback/core";
 import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
@@ -7,7 +5,7 @@ import { homedir } from "node:os";
 export const statusToolDefinition = {
   name: "gitback_status",
   description:
-    "Quick overview of all your GitBack-tracked projects. Shows project name, activity status, last checkpoint, and summary for each connected project.",
+    "Quick overview of all your GitBack-tracked projects. Shows project name, activity status, last checkpoint, and summary for each tracked project.",
   inputSchema: {
     type: "object" as const,
     properties: {},
@@ -70,33 +68,6 @@ function getLocalProjects(): LocalProject[] {
 }
 
 export async function handleStatus(): Promise<string> {
-  const userId = process.env.GITBACK_USER_ID;
-
-  // Try cloud if configured
-  if (userId) {
-    try {
-      const projects = await listProjectRecords(userId);
-      if (projects.length > 0) {
-        const lines: string[] = [
-          `**${projects.length} project${projects.length > 1 ? "s" : ""} tracked by GitBack:**`,
-          "",
-        ];
-
-        for (const p of projects) {
-          lines.push(`### ${p.repoFullName} [${p.activityStatus}]`);
-          lines.push(`- Last checkpoint: ${formatTimeSince(p.lastCheckpointAt)}`);
-          if (p.summary) lines.push(`- ${p.summary}`);
-          lines.push("");
-        }
-
-        return lines.join("\n");
-      }
-    } catch {
-      // Cloud unavailable — fall through to local
-    }
-  }
-
-  // Fall back to local projects
   const localProjects = getLocalProjects();
 
   if (localProjects.length === 0) {

@@ -15,20 +15,11 @@ Thanks for your interest in contributing! Here's how to get started.
 git clone https://github.com/Haridharshini510/gitback.git
 cd gitback
 
-# Install dependencies (root + all packages)
+# Install dependencies
 npm install
-
-# Install frontend dependencies separately
-cd frontend && npm install && cd ..
 
 # Build all packages
 npm run build
-
-# Start the API server (optional, for dashboard)
-npm run start:api
-
-# Start the frontend dev server (optional)
-cd frontend && npm run dev
 ```
 
 ## Project Structure
@@ -38,10 +29,7 @@ gitback/
 ├── packages/
 │   ├── core/       # Shared library — git, checkpoints, LLM, storage
 │   ├── cli/        # CLI tool (gitback remember/resume/compare/status/config)
-│   ├── mcp/        # MCP server for AI coding agents
-│   └── api/        # Express API for the web dashboard
-├── frontend/       # React + Vite dashboard
-└── infra/          # AWS SAM template (optional cloud deploy)
+│   └── mcp/        # MCP server for AI coding agents
 ```
 
 ## Building
@@ -54,7 +42,6 @@ npm run build
 npm run build:core
 npm run build:cli
 npm run build:mcp
-npm run build:api
 ```
 
 ## Testing the CLI locally
@@ -67,6 +54,13 @@ node packages/cli/dist/index.js help
 # Or link it globally for development
 cd packages/cli && npm link && cd ../..
 gitback help
+```
+
+## Testing the MCP server locally
+
+```bash
+npm run build
+npm run start:mcp
 ```
 
 ## Pull Request Process

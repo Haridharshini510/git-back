@@ -1,9 +1,8 @@
 {
-  "name": "gitback",
+  "name": "gitback-monorepo",
   "private": true,
   "workspaces": [
-    "packages/*",
-    "frontend"
+    "packages/*"
   ],
   "engines": {
     "node": ">=18.0.0"
@@ -12,13 +11,8 @@
     "build": "npm run build --workspaces",
     "build:core": "npm run build -w packages/core",
     "build:mcp": "npm run build -w packages/mcp",
-    "build:api": "npm run build -w packages/api",
     "build:cli": "npm run build -w packages/cli",
-    "start:api": "node --env-file=.env packages/api/dist/index.js",
-    "start:mcp": "node --env-file=.env packages/mcp/dist/index.js",
-    "dev:api": "node --env-file=.env --watch packages/api/dist/index.js"
-  },
-  "dependencies": {
-    "dotenv": "^18.0.1"
+    "start:mcp": "node packages/mcp/dist/index.js",
+    "publish:all": "npm run build && npm publish -w packages/core && npm publish -w packages/cli && npm publish -w packages/mcp"
   }
 }

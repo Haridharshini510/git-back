@@ -10,23 +10,13 @@ Every developer has abandoned side projects — not from lack of skill, but from
 
 GitBack solves this. It saves development checkpoints — your intent, decisions, and progress — alongside the actual git state. When you come back, it reconstructs exactly where you left off.
 
-Works as an **MCP server** (for Claude Code, Cursor, etc.), a **CLI**, or through a **web dashboard**.
+Works as an **MCP server** (for Claude Code, Cursor, etc.) or as a **CLI tool**. Fully local, zero accounts, zero cloud dependencies.
 
 ## Quickstart
 
-### CLI
-
-```bash
-# In any git repository:
-npx @gitback/cli remember "Halfway through auth. Login works, refresh tokens next."
-
-# Later, when you come back:
-npx @gitback/cli resume
-```
-
 ### MCP Server (Claude Code / Cursor)
 
-Add to your Claude Code settings (`~/.claude/settings.json`):
+Add to your MCP config:
 
 ```json
 {
@@ -44,6 +34,16 @@ Then just talk to your coding agent:
 > "GitBack, remember where I am. I'm implementing Stripe webhooks. Signature validation is done, idempotency is not."
 
 > "GitBack, where was I?"
+
+### CLI
+
+```bash
+# In any git repository:
+npx @gitback/cli remember "Halfway through auth. Login works, refresh tokens next."
+
+# Later, when you come back:
+npx @gitback/cli resume
+```
 
 ## What Gets Captured
 
@@ -66,7 +66,7 @@ When you resume, GitBack combines your saved checkpoint with the current git sta
 
 ## AI-Powered Briefings (Optional)
 
-GitBack works without any LLM — it shows you structured checkpoint data and git state.
+GitBack works without any LLM — it shows structured checkpoint data and git state.
 
 For AI-synthesized briefings, configure any OpenAI-compatible endpoint:
 
@@ -75,21 +75,12 @@ For AI-synthesized briefings, configure any OpenAI-compatible endpoint:
 export GITBACK_LLM_BASE_URL=http://localhost:11434/v1
 export GITBACK_LLM_MODEL=llama3.1:8b
 
-# OpenRouter (many models, some free)
-export GITBACK_LLM_BASE_URL=https://openrouter.ai/api/v1
-export GITBACK_LLM_API_KEY=sk-or-...
-export GITBACK_LLM_MODEL=anthropic/claude-sonnet-4-5
-
-# OpenAI
-export GITBACK_LLM_BASE_URL=https://api.openai.com/v1
-export GITBACK_LLM_API_KEY=sk-...
-export GITBACK_LLM_MODEL=gpt-4o
-
-# Google AI Studio (free tier)
-export GITBACK_LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
-export GITBACK_LLM_API_KEY=...
-export GITBACK_LLM_MODEL=gemini-2.0-flash
+# Or use the config command:
+gitback config set llm.base-url http://localhost:11434/v1
+gitback config set llm.model llama3.1:8b
 ```
+
+See `.env.example` for more provider examples (OpenRouter, OpenAI, Google AI Studio).
 
 ## MCP Tools
 
@@ -107,22 +98,8 @@ gitback remember <note> [--tags tag1,tag2]   Save a checkpoint
 gitback resume [--full]                       Pick up where you left off
 gitback compare                               What changed since last checkpoint
 gitback status                                List tracked projects
+gitback config [show|set|unset|path]          Manage LLM provider config
 ```
-
-## Web Dashboard
-
-GitBack includes a web dashboard for viewing all your projects at a glance.
-
-```bash
-# Start the API server
-cp .env.example .env
-npm run start:api
-
-# Start the frontend dev server
-cd frontend && npm run dev
-```
-
-The dashboard shows project cards with activity status (Active / Stalling / Dormant) and a Resume View with full context for each project.
 
 ## Architecture
 
@@ -130,14 +107,13 @@ The dashboard shows project cards with activity status (Active / Stalling / Dorm
 Developer
     |
     v
-Coding Agent (Claude Code / Cursor)
+Coding Agent (Claude Code / Cursor / Windsurf)
     |
     v
 GitBack MCP Server (local)
     |--- Local git repo (status, diff, log, branch)
     |--- Local storage (~/.gitback/)
     |--- Optional: LLM (any OpenAI-compatible API)
-    |--- Optional: Cloud sync (DynamoDB)
 ```
 
 **Packages:**
@@ -147,8 +123,8 @@ GitBack MCP Server (local)
 | `packages/core` | Shared library: git operations, checkpoint creation, evidence gathering, LLM client |
 | `packages/mcp` | MCP server exposing GitBack tools |
 | `packages/cli` | Terminal interface |
-| `packages/api` | Express API server for the web dashboard |
-| `frontend/` | React + Vite + Tailwind dashboard |
+
+All data is stored locally in `~/.gitback/`. No accounts, no cloud, no API keys required.
 
 ## How It Works
 
@@ -173,16 +149,13 @@ npm run build
 # Run the CLI
 node packages/cli/dist/index.js help
 
-# Run the API server
-npm run start:api
-
-# Run the frontend
-cd frontend && npm run dev
+# Run the MCP server
+npm run start:mcp
 ```
 
 ## Contributing
 
-Contributions are welcome! Please open an issue first to discuss what you'd like to change.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup, build instructions, and PR process.
 
 ## License
 

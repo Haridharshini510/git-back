@@ -1,6 +1,5 @@
 import {
   loadLatestCheckpointLocal,
-  loadLatestCheckpointCloud,
   resolveProject,
   getGitState,
   getCommitsSince,
@@ -8,10 +7,8 @@ import {
   getGitDiffSummary,
   isGitRepo,
   synthesizeResumeBriefing,
-  synthesizeStructuredContext,
-  saveContextCloud,
-} from "@gitback/core";
-import type { Evidence, ContextSnapshot } from "@gitback/core";
+} from "gitback-core";
+import type { Evidence } from "gitback-core";
 
 function formatTimeSince(isoDate: string): string {
   const ms = Date.now() - new Date(isoDate).getTime();
@@ -55,17 +52,7 @@ export async function handleResume(args: {
 
   const project = resolveProject();
   const currentState = getGitState();
-
-  // Try local first, then cloud if configured
-  let checkpoint = loadLatestCheckpointLocal(project.projectId);
-  const userId = process.env.GITBACK_USER_ID;
-  if (!checkpoint && userId) {
-    try {
-      checkpoint = await loadLatestCheckpointCloud(userId, project.projectId);
-    } catch {
-      // Cloud unavailable
-    }
-  }
+  const checkpoint = loadLatestCheckpointLocal(project.projectId);
 
   if (!checkpoint) {
     const fileCount =
@@ -92,47 +79,21 @@ export async function handleResume(args: {
   const diffSummary = getGitDiffSummary(checkpoint.commitSha);
   const evidence = gatherEvidence(checkpoint, currentState, newCommits);
 
-  // Try AI-powered briefing (returns null if no LLM configured)
-  const synthesisInput = {
+  const briefing = await synthesizeResumeBriefing({
     checkpoint,
     currentState,
     commitsSinceCheckpoint: newCommits,
     evidence,
     projectName: project.repoFullName,
-  };
-
-  const briefing = await synthesizeResumeBriefing(synthesisInput).catch(() => null);
+  }).catch(() => null);
 
   if (briefing) {
-    // Also generate and save structured context for the dashboard
-    try {
-      const structured = await synthesizeStructuredContext(synthesisInput);
-      if (structured && userId) {
-        const contextSnapshot: ContextSnapshot = {
-          projectId: project.projectId,
-          timestamp: new Date().toISOString(),
-          checkpointId: checkpoint.checkpointId,
-          whereYouLeftOff: structured.whereYouLeftOff,
-          whatChanged: structured.whatChanged,
-          whatsNext: structured.whatsNext,
-          whatsDone: structured.whatsDone,
-          decisions: structured.decisions,
-          evidence,
-          oneLinerSummary: structured.oneLinerSummary,
-        };
-        await saveContextCloud(userId, contextSnapshot);
-      }
-    } catch {
-      // Context save failed — briefing still returned to user
-    }
-
     return briefing;
   }
 
   // Fallback: structured output
   const sections: string[] = [];
 
-  // Section 1: Where You Left Off
   sections.push(
     `## Where You Left Off`,
     "",
@@ -148,7 +109,6 @@ export async function handleResume(args: {
     sections.push(`- **Tags:** ${checkpoint.tags.join(", ")}`);
   }
 
-  // Section 2: What Changed Since Then
   sections.push("", `## What Changed Since Then`, "");
 
   if (newCommits.length > 0) {
@@ -184,7 +144,6 @@ export async function handleResume(args: {
     sections.push("", "**Diff summary:**", "```", diffSummary, "```");
   }
 
-  // Section 3: TODOs at checkpoint
   if (checkpoint.todos.length > 0) {
     sections.push("", `## TODOs From Last Session`, "");
     for (const todo of checkpoint.todos) {
@@ -192,7 +151,6 @@ export async function handleResume(args: {
     }
   }
 
-  // Section 4: Evidence
   sections.push("", `## Evidence`, "", formatEvidence(evidence));
 
   return sections.join("\n");

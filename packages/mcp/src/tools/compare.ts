@@ -1,12 +1,11 @@
 import {
   loadLatestCheckpointLocal,
-  loadLatestCheckpointCloud,
   resolveProject,
   getGitState,
   getGitDiffSummary,
   getCommitsSince,
   isGitRepo,
-} from "@gitback/core";
+} from "gitback-core";
 
 export const compareToolDefinition = {
   name: "gitback_compare",
@@ -24,16 +23,7 @@ export async function handleCompare(): Promise<string> {
   }
 
   const project = resolveProject();
-
-  let checkpoint = loadLatestCheckpointLocal(project.projectId);
-  const userId = process.env.GITBACK_USER_ID;
-  if (!checkpoint && userId) {
-    try {
-      checkpoint = await loadLatestCheckpointCloud(userId, project.projectId);
-    } catch {
-      // Cloud unavailable
-    }
-  }
+  const checkpoint = loadLatestCheckpointLocal(project.projectId);
 
   if (!checkpoint) {
     return "No checkpoint found. Use **gitback_remember** first.";

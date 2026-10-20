@@ -28,15 +28,3 @@ jobs:
 
       - name: Build all packages
         run: npm run build
-
-      - name: Install frontend dependencies
-        working-directory: frontend
-        run: npm ci
-
-      - name: Build frontend
-        working-directory: frontend
-        run: npm run build
-
-      - name: Lint frontend
-        working-directory: frontend
-        run: npm run lint
