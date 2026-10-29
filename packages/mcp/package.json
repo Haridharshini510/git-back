@@ -23,7 +23,7 @@
     "directory": "packages/mcp"
   },
   "dependencies": {
-    "gitback-core": "0.1.0",
+    "gitback-core": "*",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "zod": "^4.6.5"
   },

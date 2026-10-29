@@ -24,7 +24,7 @@
     "directory": "packages/cli"
   },
   "dependencies": {
-    "gitback-core": "0.1.0"
+    "gitback-core": "*"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

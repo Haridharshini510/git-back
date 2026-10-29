@@ -10,10 +10,20 @@ Works as a **CLI tool** or **MCP server** (for Claude Code, Cursor, etc.). Fully
 
 ## Install
 
-### As a CLI tool
+### Option 1: From npm (once published)
 
 ```bash
-npm install -g @gitback/cli
+npm install -g gitback-cli
+```
+
+### Option 2: From source (for now)
+
+```bash
+git clone https://github.com/Haridharshini510/gitback.git
+cd gitback
+npm install
+npm run build
+npm install -g ./packages/cli
 ```
 
 ### As an MCP server (for Claude Code / Cursor)
@@ -25,7 +35,20 @@ Add to your MCP config (`~/.config/claude/claude_desktop_config.json` or similar
   "mcpServers": {
     "gitback": {
       "command": "npx",
-      "args": ["@gitback/mcp"]
+      "args": ["gitback-mcp"]
+    }
+  }
+}
+```
+
+Or if installing from source:
+
+```json
+{
+  "mcpServers": {
+    "gitback": {
+      "command": "node",
+      "args": ["/absolute/path/to/gitback/packages/mcp/dist/index.js"]
     }
   }
 }
@@ -216,6 +239,28 @@ npm run start:mcp
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup, build instructions, and PR process.
+
+---
+
+## Publishing to npm
+
+If you want to publish this to npm (requires npm account):
+
+```bash
+# Build all packages
+npm run build
+
+# Publish (from project root)
+npm publish --workspace packages/core
+npm publish --workspace packages/cli
+npm publish --workspace packages/mcp
+```
+
+Or use the convenience script:
+
+```bash
+npm run publish:all
+```
 
 ---
 
