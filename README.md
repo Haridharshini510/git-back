@@ -1,22 +1,24 @@
 # GitBack
 
-**Persistent development memory for coding agents.**
+**Development memory for your git projects.**
 
-Your coding agent knows your code. GitBack remembers your journey.
+When you come back to a project after days or weeks, GitBack reconstructs exactly where you left off — your intent, your progress, and what to do next.
+
+Works as a **CLI tool** or **MCP server** (for Claude Code, Cursor, etc.). Fully local, zero accounts, zero setup.
 
 ---
 
-Every developer has abandoned side projects — not from lack of skill, but from context loss. You come back after two weeks and spend an hour just remembering where you were.
+## Install
 
-GitBack solves this. It saves development checkpoints — your intent, decisions, and progress — alongside the actual git state. When you come back, it reconstructs exactly where you left off.
+### As a CLI tool
 
-Works as an **MCP server** (for Claude Code, Cursor, etc.) or as a **CLI tool**. Fully local, zero accounts, zero cloud dependencies.
+```bash
+npm install -g @gitback/cli
+```
 
-## Quickstart
+### As an MCP server (for Claude Code / Cursor)
 
-### MCP Server (Claude Code / Cursor)
-
-Add to your MCP config:
+Add to your MCP config (`~/.config/claude/claude_desktop_config.json` or similar):
 
 ```json
 {
@@ -29,133 +31,193 @@ Add to your MCP config:
 }
 ```
 
-Then just talk to your coding agent:
+---
 
-> "GitBack, remember where I am. I'm implementing Stripe webhooks. Signature validation is done, idempotency is not."
-
-> "GitBack, where was I?"
+## How to Use
 
 ### CLI
 
 ```bash
-# In any git repository:
-npx @gitback/cli remember "Halfway through auth. Login works, refresh tokens next."
+# When you're in the middle of something, save a checkpoint
+gitback remember "Halfway through auth. Login works, refresh tokens next."
 
-# Later, when you come back:
-npx @gitback/cli resume
+# Later, when you come back
+gitback resume
+
+# See what changed since your last checkpoint
+gitback compare
+
+# List all your tracked projects
+gitback status
 ```
+
+### MCP (with Claude Code or Cursor)
+
+Just talk to your coding agent:
+
+```
+You: "GitBack, remember where I am. I'm implementing Stripe webhooks. 
+     Signature validation is done, idempotency is not."
+
+You: "GitBack, where was I?"
+```
+
+The agent will use the `gitback_remember` and `gitback_resume` tools automatically.
+
+---
 
 ## What Gets Captured
 
 When you save a checkpoint, GitBack records:
 
-| What | Source |
-|---|---|
-| Your note | What you said you were doing, your intent, decisions, next steps |
-| Branch & commit | Current git branch and HEAD commit |
-| Changed files | Modified, staged, and untracked files with their status |
-| Diff summary | Summary of uncommitted changes |
-| TODOs | TODO/FIXME comments found in changed files |
-| Recent commits | Last 10 commit messages |
+- Your note (what you're doing, intent, decisions, next steps)
+- Current branch and commit
+- Modified, staged, and untracked files
+- TODO/FIXME comments in changed files
+- Recent commit history
+- Diff summary
 
-When you resume, GitBack combines your saved checkpoint with the current git state to show:
-- Where you left off (your own words + observed state)
+When you resume, it shows:
+- Where you left off (your words + observed state)
 - What changed since then (new commits, file changes)
-- What to do next (prioritized, actionable steps)
+- What to do next (prioritized action items)
 - Evidence supporting each conclusion
 
-## AI-Powered Briefings (Optional)
+---
 
-GitBack works without any LLM — it shows structured checkpoint data and git state.
+## Optional: AI-Powered Briefings
 
-For AI-synthesized briefings, configure any OpenAI-compatible endpoint:
+GitBack works perfectly without any LLM — it shows structured data and git state.
+
+For **AI-synthesized briefings**, configure any OpenAI-compatible endpoint:
+
+### Recommended: Ollama (free, local)
 
 ```bash
-# Ollama (local, free)
-export GITBACK_LLM_BASE_URL=http://localhost:11434/v1
-export GITBACK_LLM_MODEL=llama3.1:8b
+# Install Ollama from https://ollama.ai
+ollama pull llama3.1:8b
 
-# Or use the config command:
+# Configure GitBack
 gitback config set llm.base-url http://localhost:11434/v1
 gitback config set llm.model llama3.1:8b
+
+# Now resume will give you AI briefings
+gitback resume
 ```
 
-See `.env.example` for more provider examples (OpenRouter, OpenAI, Google AI Studio).
+### Other Providers
+
+```bash
+# OpenRouter (many models, some free)
+gitback config set llm.base-url https://openrouter.ai/api/v1
+gitback config set llm.api-key sk-or-...
+gitback config set llm.model anthropic/claude-sonnet-4-5
+
+# OpenAI
+gitback config set llm.base-url https://api.openai.com/v1
+gitback config set llm.api-key sk-...
+gitback config set llm.model gpt-4o
+
+# Google AI Studio (free tier)
+gitback config set llm.base-url https://generativelanguage.googleapis.com/v1beta/openai
+gitback config set llm.api-key your-key
+gitback config set llm.model gemini-2.0-flash
+```
+
+See `.env.example` for more provider examples.
+
+---
+
+## All Commands
+
+```bash
+gitback remember <note> [--tags tag1,tag2]   # Save a checkpoint
+gitback resume [--full]                       # Pick up where you left off
+gitback compare                               # What changed since last checkpoint
+gitback status                                # List all tracked projects
+gitback config [show|set|unset|path]          # Manage LLM config
+gitback help                                  # Show help
+```
+
+---
 
 ## MCP Tools
 
 | Tool | Description |
 |---|---|
-| `gitback_remember` | Save a development checkpoint with your note + auto-collected git state |
+| `gitback_remember` | Save a checkpoint with your note + auto-collected git state |
 | `gitback_resume` | Reconstruct where you left off, with optional AI briefing |
 | `gitback_compare` | Show what changed since your last checkpoint |
 | `gitback_status` | List all tracked projects with activity status |
 
-## CLI Commands
-
-```
-gitback remember <note> [--tags tag1,tag2]   Save a checkpoint
-gitback resume [--full]                       Pick up where you left off
-gitback compare                               What changed since last checkpoint
-gitback status                                List tracked projects
-gitback config [show|set|unset|path]          Manage LLM provider config
-```
-
-## Architecture
-
-```
-Developer
-    |
-    v
-Coding Agent (Claude Code / Cursor / Windsurf)
-    |
-    v
-GitBack MCP Server (local)
-    |--- Local git repo (status, diff, log, branch)
-    |--- Local storage (~/.gitback/)
-    |--- Optional: LLM (any OpenAI-compatible API)
-```
-
-**Packages:**
-
-| Package | Purpose |
-|---|---|
-| `packages/core` | Shared library: git operations, checkpoint creation, evidence gathering, LLM client |
-| `packages/mcp` | MCP server exposing GitBack tools |
-| `packages/cli` | Terminal interface |
-
-All data is stored locally in `~/.gitback/`. No accounts, no cloud, no API keys required.
+---
 
 ## How It Works
 
 **Two types of memory:**
 
-| Type | Source | Example |
-|---|---|---|
-| **Explicit** | Developer tells GitBack | "I'm halfway through Stripe webhooks. Signature done, idempotency not." |
-| **Observed** | GitBack reads from git | Branch: `feature/stripe`, 4 modified files, 2 TODOs |
+1. **Explicit** — You tell GitBack what you're doing
+2. **Observed** — GitBack reads from git automatically
 
-**Evidence-backed conclusions:** Every conclusion cites its source (CHECKPOINT, COMMIT, DIFF, FILE, TODO, BRANCH) so GitBack never appears to hallucinate.
+**Evidence-backed conclusions:** Every conclusion cites its source (CHECKPOINT, COMMIT, DIFF, TODO, BRANCH) so GitBack never hallucinates.
+
+**All data is local:** Everything is stored in `~/.gitback/` on your machine. No cloud, no accounts, no API keys required.
+
+---
 
 ## Development
 
+### Setup
+
 ```bash
+# Clone the repo
+git clone https://github.com/Haridharshini510/gitback.git
+cd gitback
+
 # Install dependencies
 npm install
 
 # Build all packages
 npm run build
+```
 
-# Run the CLI
+### Project Structure
+
+```
+gitback/
+├── packages/
+│   ├── core/       # Shared library (git, checkpoints, LLM, storage)
+│   ├── cli/        # CLI tool (gitback command)
+│   └── mcp/        # MCP server for AI coding agents
+```
+
+### Build Commands
+
+```bash
+npm run build           # Build everything
+npm run build:core      # Build core library
+npm run build:cli       # Build CLI
+npm run build:mcp       # Build MCP server
+```
+
+### Test Locally
+
+```bash
+# Test the CLI
+npm run build
 node packages/cli/dist/index.js help
 
-# Run the MCP server
+# Test the MCP server
 npm run start:mcp
 ```
+
+---
 
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup, build instructions, and PR process.
+
+---
 
 ## License
 
