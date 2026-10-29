@@ -8,7 +8,7 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "npm run build:core && npm run build:cli && npm run build:mcp",
     "build:core": "npm run build -w packages/core",
     "build:mcp": "npm run build -w packages/mcp",
     "build:cli": "npm run build -w packages/cli",
