@@ -19,8 +19,8 @@ npm install -g gitback-cli
 ### Option 2: From source (for now)
 
 ```bash
-git clone https://github.com/Haridharshini510/gitback.git
-cd gitback
+git clone https://github.com/Haridharshini510/git-back.git
+cd git-back
 npm install
 npm run build
 npm install -g ./packages/cli
@@ -194,8 +194,8 @@ gitback help                                  # Show help
 
 ```bash
 # Clone the repo
-git clone https://github.com/Haridharshini510/gitback.git
-cd gitback
+git clone https://github.com/Haridharshini510/git-back.git
+cd git-back
 
 # Install dependencies
 npm install
@@ -238,7 +238,12 @@ npm run start:mcp
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup, build instructions, and PR process.
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
+- Development setup
+- Project structure
+- How to submit PRs
+- Code style guidelines
+- Areas where we need help
 
 ---
 

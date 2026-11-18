@@ -20,7 +20,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Haridharshini510/gitback",
+    "url": "https://github.com/Haridharshini510/git-back",
     "directory": "packages/cli"
   },
   "dependencies": {
