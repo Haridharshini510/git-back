@@ -1,22 +1,45 @@
 # GitBack
 
+[![npm version](https://img.shields.io/npm/v/gitback-core.svg)](https://www.npmjs.com/package/gitback-core)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 **Development memory for your git projects.**
 
 When you come back to a project after days or weeks, GitBack reconstructs exactly where you left off — your intent, your progress, and what to do next.
 
 Works as a **CLI tool** or **MCP server** (for Claude Code, Cursor, etc.). Fully local, zero accounts, zero setup.
 
+> **Packages**: [gitback-core](https://www.npmjs.com/package/gitback-core) · [@hari2006/gitback-cli](https://www.npmjs.com/package/@hari2006/gitback-cli) · [@hari2006/gitback-mcp](https://www.npmjs.com/package/@hari2006/gitback-mcp)
+
+---
+
+## Quick Start
+
+```bash
+# Install
+npm install -g @hari2006/gitback-cli
+
+# Go to your project
+cd your-project
+
+# Save a checkpoint
+gitback remember "Halfway through user auth. Login works, refresh tokens next."
+
+# Later, come back and resume
+gitback resume
+```
+
 ---
 
 ## Install
 
-### Option 1: From npm
+### CLI Tool
 
 ```bash
 npm install -g @hari2006/gitback-cli
 ```
 
-### Option 2: From source (for now)
+### From Source
 
 ```bash
 git clone https://github.com/Haridharshini510/git-back.git
@@ -26,9 +49,11 @@ npm run build
 npm install -g ./packages/cli
 ```
 
-### As an MCP server (for Claude Code / Cursor)
+### MCP Server (for AI Coding Agents)
 
-Add to your MCP config (`~/.config/claude/claude_desktop_config.json` or similar):
+Add to your MCP config:
+- **Mac/Linux**: `~/.config/claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
 {
@@ -86,6 +111,48 @@ You: "GitBack, where was I?"
 ```
 
 The agent will use the `gitback_remember` and `gitback_resume` tools automatically.
+
+### Example Output
+
+When you run `gitback resume`, you'll see:
+
+```
+WHERE YOU LEFT OFF
+  2 hours ago (2026-11-18 10:30:15)
+  "Halfway through auth. Login works, refresh tokens next."
+  Branch: feature/auth
+  Commit: a3f2c1d — Add login endpoint
+
+WHAT CHANGED SINCE THEN
+  2 new commits:
+    b5e8f3a Refactor auth middleware
+    c9d1a7e Add token validation
+  3 uncommitted files:
+    M src/auth/tokens.ts
+    M src/middleware/auth.ts
+    ? tests/auth.test.ts
+
+TODOS FROM LAST SESSION
+  TODO src/auth/tokens.ts:42 — Implement refresh token rotation
+  FIXME src/middleware/auth.ts:15 — Handle expired tokens
+
+EVIDENCE
+  [CHECKPOINT] Checkpoint from 2026-11-18T10:30:15.000Z: Halfway through auth...
+  [BRANCH] Current branch: feature/auth
+  [COMMIT] b5e8f3a: Refactor auth middleware
+  [COMMIT] c9d1a7e: Add token validation
+```
+
+---
+
+## Features
+
+- **Zero Setup** — Just install and run. No configuration required.
+- **Fully Local** — All data stays on your machine in `~/.gitback/`. No cloud, no tracking.
+- **Evidence-Based** — Every conclusion cites its source (commit, diff, TODO, etc.). No hallucinations.
+- **LLM Optional** — Works great with structured output. Add Ollama/OpenRouter for AI briefings.
+- **Multi-Project** — Track unlimited projects. `gitback status` shows them all.
+- **MCP Compatible** — Works with Claude Code, Cursor, and any MCP-compatible AI agent.
 
 ---
 
@@ -188,6 +255,17 @@ gitback help                                  # Show help
 
 ---
 
+## Use Cases
+
+- **Context switching** — Juggling multiple projects? Save your mental state before switching.
+- **After breaks** — Coming back after lunch, weekend, or vacation? Resume instantly.
+- **Bug investigation** — Save checkpoints as you investigate. Reconstruct your debugging path.
+- **Handoffs** — Leaving detailed notes for teammates (or future you).
+- **Progress tracking** — Natural checkpoints throughout the day show real progress.
+- **Branch hopping** — Switch branches often? GitBack remembers context per branch.
+
+---
+
 ## Development
 
 ### Setup
@@ -245,30 +323,57 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
 - Code style guidelines
 - Areas where we need help
 
+### Publishing
+
+For maintainers: See [CONTRIBUTING.md](CONTRIBUTING.md) for publishing instructions.
+
 ---
 
-## Publishing to npm
+## FAQ
 
-If you want to publish this to npm (requires npm account):
+**Q: Do I need an LLM API key?**  
+A: No! GitBack works great with structured output. LLM integration is optional for AI-synthesized briefings.
 
-```bash
-# Build all packages
-npm run build
+**Q: Where is my data stored?**  
+A: Everything is stored locally in `~/.gitback/projects/` on your machine. Each project gets its own folder.
 
-# Publish (from project root)
-npm publish --workspace packages/core
-npm publish --workspace packages/cli
-npm publish --workspace packages/mcp
-```
+**Q: Can I use this with private repos?**  
+A: Yes! GitBack never sends data anywhere. It's completely local.
 
-Or use the convenience script:
+**Q: Does it work with monorepos?**  
+A: Yes! Each git repository is tracked separately.
 
-```bash
-npm run publish:all
-```
+**Q: Can I export my checkpoints?**  
+A: Yes! They're just JSON files in `~/.gitback/projects/{projectId}/checkpoints/`. Copy them anywhere.
+
+**Q: Why is the CLI package `@hari2006/gitback-cli` but the command is `gitback`?**  
+A: The package name is scoped to avoid npm naming conflicts, but the actual command you type is just `gitback` (defined in the package's `bin` field). Think of it like installing `@angular/cli` but typing `ng`.
+
+---
+
+## Roadmap
+
+- [ ] Cloud sync (optional, encrypted)
+- [ ] Team workspaces
+- [ ] GitHub/GitLab integration
+- [ ] VS Code extension
+- [ ] Checkpoint branching (save multiple states per branch)
+- [ ] Automatic checkpoint suggestions based on work patterns
 
 ---
 
 ## License
 
 [MIT](LICENSE)
+
+---
+
+## Acknowledgments
+
+Built by [@Haridharshini510](https://github.com/Haridharshini510)
+
+If GitBack helps you, consider:
+- Starring the repo
+- Reporting bugs
+- Suggesting features
+- Contributing code
