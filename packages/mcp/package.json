@@ -1,5 +1,5 @@
 {
-  "name": "gitback-mcp",
+  "name": "@hari2006/gitback-mcp",
   "version": "0.1.0",
   "description": "MCP server for GitBack — persistent development memory for AI coding agents",
   "type": "module",
@@ -23,7 +23,7 @@
     "directory": "packages/mcp"
   },
   "dependencies": {
-    "gitback-core": "*",
+    "gitback-core": "^0.1.0",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "zod": "^4.6.5"
   },

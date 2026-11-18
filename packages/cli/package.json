@@ -1,5 +1,5 @@
 {
-  "name": "gitback-cli",
+  "name": "@hari2006/gitback-cli",
   "version": "0.1.0",
   "description": "CLI for GitBack — persistent development memory. Remember where you left off.",
   "type": "module",
@@ -24,7 +24,7 @@
     "directory": "packages/cli"
   },
   "dependencies": {
-    "gitback-core": "*"
+    "gitback-core": "^0.1.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

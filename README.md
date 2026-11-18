@@ -10,10 +10,10 @@ Works as a **CLI tool** or **MCP server** (for Claude Code, Cursor, etc.). Fully
 
 ## Install
 
-### Option 1: From npm (once published)
+### Option 1: From npm
 
 ```bash
-npm install -g gitback-cli
+npm install -g @hari2006/gitback-cli
 ```
 
 ### Option 2: From source (for now)
@@ -35,7 +35,7 @@ Add to your MCP config (`~/.config/claude/claude_desktop_config.json` or similar
   "mcpServers": {
     "gitback": {
       "command": "npx",
-      "args": ["gitback-mcp"]
+      "args": ["@hari2006/gitback-mcp"]
     }
   }
 }
